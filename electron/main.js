@@ -19,10 +19,7 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false,
-      enableRemoteModule: false,
-      sandbox: true,
-      webSecurity: true
+      nodeIntegration: false
     }
   });
 
@@ -31,14 +28,6 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
-
-  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  win.webContents.on('will-navigate', (event, navigationUrl) => {
-    const allowedOrigin = isDev ? 'http://localhost:5173' : 'file://';
-    if (!navigationUrl.startsWith(allowedOrigin)) {
-      event.preventDefault();
-    }
-  });
 }
 
 function runCommand(command, timeout = 20000) {
@@ -154,24 +143,14 @@ ipcMain.handle('diag:testPort', async (_, { target, port, timeout = 2500 }) => {
 ipcMain.handle('diag:publicIp', getPublicIpInfo);
 
 ipcMain.handle('diag:speedTest', async () => {
-  try {
-    const result = await speedTest({ acceptLicense: true, acceptGdpr: true });
-    return {
-      ok: true,
-      downloadMbps: Number((result.download.bandwidth * 8e-6).toFixed(2)),
-      uploadMbps: Number((result.upload.bandwidth * 8e-6).toFixed(2)),
-      latencyMs: Number(result.ping.latency.toFixed(2)),
-      jitterMs: Number((result.ping.jitter || 0).toFixed(2)),
-      server: result.server?.name
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      error:
-        'Speed test unavailable in this network environment. Verify internet/proxy settings, or skip speed test for now.',
-      details: error.message
-    };
-  }
+  const result = await speedTest({ acceptLicense: true, acceptGdpr: true });
+  return {
+    downloadMbps: Number((result.download.bandwidth * 8e-6).toFixed(2)),
+    uploadMbps: Number((result.upload.bandwidth * 8e-6).toFixed(2)),
+    latencyMs: Number(result.ping.latency.toFixed(2)),
+    jitterMs: Number((result.ping.jitter || 0).toFixed(2)),
+    server: result.server?.name
+  };
 });
 
 app.whenReady().then(createWindow);

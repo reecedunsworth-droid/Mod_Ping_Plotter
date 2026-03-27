@@ -50,32 +50,21 @@ export default function App() {
   }, [selected.health.tone]);
 
   const runTraceroute = async () => {
-    try {
-      const hops = await api.traceroute(selectedTarget);
-      setTraceroute(hops);
-    } catch (error) {
-      setTraceroute([
-        {
-          hop: 1,
-          host: 'Traceroute failed',
-          latency: null,
-          raw: error.message
-        }
-      ]);
-    }
+    const hops = await api.traceroute(selectedTarget);
+    setTraceroute(hops);
   };
 
   const runDiagnostics = async () => {
-    const [dns, ip, speedResult, port] = await Promise.allSettled([
+    const [dns, ip, speedResult, port] = await Promise.all([
       api.dnsLookup(selectedTarget),
       api.publicIp(),
       api.speedTest(),
       api.testPort(selectedTarget, 443)
     ]);
-    setDnsResult(dns.status === 'fulfilled' ? dns.value : { error: dns.reason?.message ?? 'DNS lookup failed' });
-    setPublicIp(ip.status === 'fulfilled' ? ip.value : { error: ip.reason?.message ?? 'Public IP lookup failed' });
-    setSpeed(speedResult.status === 'fulfilled' ? speedResult.value : { ok: false, error: speedResult.reason?.message ?? 'Speed test failed' });
-    setPortResult(port.status === 'fulfilled' ? port.value : { error: port.reason?.message ?? 'Port test failed' });
+    setDnsResult(dns);
+    setPublicIp(ip);
+    setSpeed(speedResult);
+    setPortResult(port);
   };
 
   const downloadHistory = (format) => {
