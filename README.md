@@ -21,8 +21,6 @@ npm install
 npm run dev
 ```
 
-`npm run dev` starts Vite and waits for `http://localhost:5173` before launching Electron.
-
 ## Architecture
 
 - `electron/`: Main process + secure preload bridge.
@@ -30,3 +28,4 @@ npm run dev
 - `src/hooks/`: Real-time monitor hook.
 - `src/services/`: Persistence and app services.
 - `src/utils/`: Health/tone logic utilities.
+

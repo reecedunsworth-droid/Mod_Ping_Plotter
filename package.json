@@ -4,9 +4,10 @@
   "description": "Netra desktop network diagnostics dashboard",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "concurrently -k -n VITE,ELECTRON -c cyan,green \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "dev": "concurrently \"vite\" \"wait-on tcp:5173 && electron .\"",
     "build": "vite build && electron-builder",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "build": {
     "appId": "com.netra.app",
@@ -20,12 +21,15 @@
     }
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "lucide-react": "^0.546.0",
     "recharts": "^3.2.1",
-    "speedtest-net": "^2.2.0"
+    "speedtest-net": "^1.6.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.21",
     "concurrently": "^9.2.1",
