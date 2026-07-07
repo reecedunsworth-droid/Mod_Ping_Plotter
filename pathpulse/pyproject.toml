@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pathpulse"
+version = "0.1.0"
+description = "Continuous network path monitor with a live local web UI (macOS/Linux)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "PathPulse" }]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+pathpulse = "pathpulse.__main__:main"
+
+[tool.setuptools]
+packages = ["pathpulse"]
+
+[tool.setuptools.package-data]
+pathpulse = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
