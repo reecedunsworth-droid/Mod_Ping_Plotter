@@ -327,9 +327,30 @@
       state.active = null;
       const first = state.targets.keys().next().value;
       if (first) selectTarget(first);
-      else { $("target-view").hidden = true; $("empty").hidden = false; }
+      else { $("target-view").hidden = true; $("empty").hidden = false; loadHistory(); }
     }
     renderTabs();
+  }
+
+  async function loadHistory() {
+    try {
+      const data = await getJSON("/api/history");
+      const past = (data.monitors || []).filter((m) => !m.active);
+      const block = $("history-block");
+      const chips = $("history-chips");
+      chips.innerHTML = "";
+      if (!past.length) { block.hidden = true; return; }
+      block.hidden = false;
+      for (const m of past) {
+        const chip = document.createElement("button");
+        chip.className = "history-chip";
+        chip.textContent = m.target;
+        chip.title = `resume monitoring ${m.target}` +
+                     (m.dest_ip ? ` (${m.dest_ip})` : "");
+        chip.onclick = () => addTarget(m.target);
+        chips.appendChild(chip);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   function setWindow(w) {
@@ -406,6 +427,7 @@
       .forEach((id) => $(id).addEventListener("change", alertChange));
 
     connectWS();
+    loadHistory();
   }
 
   document.addEventListener("DOMContentLoaded", init);

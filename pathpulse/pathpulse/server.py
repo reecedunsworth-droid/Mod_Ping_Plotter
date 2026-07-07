@@ -127,6 +127,15 @@ def create_app(config: Optional[Config] = None,
     async def list_targets(request: Request):
         return {"targets": manager_of(request).list_targets()}
 
+    @app.get("/api/history")
+    async def history(request: Request):
+        """Previously-monitored targets from SQLite, so past incidents can be
+        resumed after a restart."""
+        mgr = manager_of(request)
+        active = {t["target"] for t in mgr.list_targets()}
+        mons = mgr.storage.list_monitors()
+        return {"monitors": [{**m, "active": m["target"] in active} for m in mons]}
+
     @app.post("/api/targets")
     async def add_target(request: Request):
         body = await request.json()

@@ -31,6 +31,10 @@
     <div id="empty" class="empty">
       <h2>No targets yet</h2>
       <p>Enter a hostname or IP above to start monitoring the path to it.</p>
+      <div id="history-block" hidden>
+        <p class="hint">Resume a previously monitored target:</p>
+        <div id="history-chips" class="history-chips"></div>
+      </div>
       <p class="hint">Tip: run PathPulse with <code>sudo</code> for full per-hop
          detail (raw ICMP). Without it, PathPulse falls back to unprivileged
          mode and shows best-effort hop data.</p>

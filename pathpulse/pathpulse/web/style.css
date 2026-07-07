@@ -106,6 +106,12 @@ body {
 .empty h2 { color: var(--text); }
 .empty .hint { max-width: 520px; margin: 16px auto; font-size: 13px; }
 .empty code { background: var(--bg-card); padding: 1px 6px; border-radius: 4px; }
+.history-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  max-width: 640px; margin: 8px auto 4px; }
+.history-chip { padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
+  font-size: 13px; font-variant-numeric: tabular-nums; }
+.history-chip:hover { border-color: var(--accent); color: var(--accent); }
 
 /* Target view */
 .tv-header { display: flex; justify-content: space-between; align-items: center;
