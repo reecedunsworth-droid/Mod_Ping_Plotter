@@ -53,6 +53,8 @@ class Monitor:
 
         self._stats = TargetStats(target, "", window=config.stats_window)
         self._stats_lock = threading.Lock()
+        self._version = 0
+        self._ver_lock = threading.Lock()
         self._last_snapshot: Optional[dict] = None
         self._stop = threading.Event()
         self._paused = threading.Event()
@@ -79,19 +81,23 @@ class Monitor:
     def pause(self) -> None:
         self._paused.set()
         self.status = "paused"
+        self._publish()
 
     def resume(self) -> None:
         self._paused.clear()
         if self.status == "paused":
             self.status = "running"
+        self._publish()
 
     def set_interval(self, seconds: float) -> None:
         self.config.interval_seconds = clamp_interval(seconds)
+        self._publish()
 
     def set_alert_config(self, **kwargs) -> None:
         for k, v in kwargs.items():
             if hasattr(self.alert_config, k):
                 setattr(self.alert_config, k, v)
+        self._publish()
 
     # -- the loop ---------------------------------------------------------
 
@@ -168,6 +174,17 @@ class Monitor:
             alert_event = self._evaluator.evaluate(
                 sample.dest_rtt, dest_loss, sample.dest_reached)
 
+        self._publish(alert_event)
+
+    # -- snapshots --------------------------------------------------------
+
+    def _publish(self, alert_event: Optional[dict] = None) -> dict:
+        """Build a versioned snapshot, cache it, and push to subscribers.
+
+        Called from both the monitor thread (each pass) and the request thread
+        (control actions). The version stamp lets clients discard any snapshot
+        that arrives out of order, so control changes never regress.
+        """
         snapshot = self._build_snapshot(alert_event)
         self._last_snapshot = snapshot
         if self.on_update:
@@ -175,8 +192,12 @@ class Monitor:
                 self.on_update(self, snapshot)
             except Exception:  # noqa: BLE001
                 pass
+        return snapshot
 
-    # -- snapshots --------------------------------------------------------
+    def _next_version(self) -> int:
+        with self._ver_lock:
+            self._version += 1
+            return self._version
 
     def _build_snapshot(self, alert_event: Optional[dict] = None) -> dict:
         with self._stats_lock:
@@ -189,6 +210,7 @@ class Monitor:
             hop["as_name"] = info["as_name"]
             hop["private"] = info["private"]
         base.update({
+            "version": self._next_version(),
             "monitor_id": self.monitor_id,
             "status": self.status,
             "mode": self.mode,
@@ -203,13 +225,17 @@ class Monitor:
     def snapshot(self) -> dict:
         if self._last_snapshot is not None:
             snap = dict(self._last_snapshot)
+            # Reflect live control state that may have changed since last pass.
             snap["status"] = self.status
             snap["error"] = self.error
+            snap["interval"] = self.config.interval_seconds
+            snap["alert"] = self.alert_config.to_dict()
             return snap
         # No pass completed yet - return a minimal placeholder.
         return {
             "target": self.target,
             "dest_ip": self.dest_ip or "",
+            "version": 0,
             "status": self.status,
             "mode": self.mode,
             "error": self.error,
