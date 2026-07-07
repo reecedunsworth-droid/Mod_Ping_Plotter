@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# PathPulse runtime data
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+data/
+exports/
+*.log

@@ -1,0 +1,8 @@
+# PathPulse runtime dependencies.
+# The ICMP/traceroute engine itself uses only the Python standard library.
+# These are for the web server layer.
+fastapi>=0.110
+uvicorn[standard]>=0.29
+
+# --- Development / testing (optional) ---
+# pytest>=8.0
