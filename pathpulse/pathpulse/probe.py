@@ -161,14 +161,16 @@ class Prober:
             parsed = icmp.parse_response(packet)
             if parsed is None:
                 continue
+            # A raw socket receives *all* ICMP on the host, including replies
+            # meant for other Probers (whose seq space overlaps ours). Filter
+            # by our unique ident FIRST so we never steal another monitor's
+            # response. In dgram mode the kernel rewrites/demuxes the id per
+            # socket, so we only ever receive our own packets - no filter.
+            if self.mode == "raw" and parsed.ident is not None \
+                    and parsed.ident != self.ident:
+                continue
             if parsed.seq is None or parsed.seq not in self._pending:
-                # Not one of our in-flight probes (another process, stale, or
-                # - in raw mode - an id mismatch we can safely ignore).
-                if self.mode == "raw" and parsed.ident is not None \
-                        and parsed.ident != self.ident:
-                    continue
-                if parsed.seq not in self._pending:
-                    continue
+                continue
 
             seq = parsed.seq
             sent_at = self._pending.pop(seq)
